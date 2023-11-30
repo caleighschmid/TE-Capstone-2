@@ -1,18 +1,20 @@
 package com.techelevator.tenmo;
 
-import com.techelevator.tenmo.model.Account;
-import com.techelevator.tenmo.model.AuthenticatedUser;
-import com.techelevator.tenmo.model.UserCredentials;
-import com.techelevator.tenmo.services.AccountService;
-import com.techelevator.tenmo.services.AuthenticationService;
-import com.techelevator.tenmo.services.ConsoleService;
+import com.techelevator.tenmo.model.*;
+import com.techelevator.tenmo.services.*;
+
+import java.math.BigDecimal;
+import java.util.List;
 
 public class App {
 
     private static final String API_BASE_URL = "http://localhost:8080/";
+
     private final ConsoleService consoleService = new ConsoleService();
     private final AuthenticationService authenticationService = new AuthenticationService(API_BASE_URL);
     private final AccountService accountService = new AccountService();
+    private final TransferService transferService = new TransferService();
+    private final UserService userService = new UserService();
 
     private AuthenticatedUser currentUser;
 
@@ -28,6 +30,7 @@ public class App {
             mainMenu();
         }
     }
+
     private void loginMenu() {
         int menuSelection = -1;
         while (menuSelection != 0 && currentUser == null) {
@@ -86,31 +89,100 @@ public class App {
         }
     }
 
-	private void viewCurrentBalance() {
-		// TODO Auto-generated method stub
+    private void viewCurrentBalance() {
+        // TODO Auto-generated method stub
         int userId = currentUser.getUser().getId();
+        accountService.setAuthToken(currentUser.getToken());
         Account account = accountService.getAccountByUserId(userId);
         System.out.println("Your current balance is: $" + account.getBalance());
-	}
+    }
 
-	private void viewTransferHistory() {
-		// TODO Auto-generated method stub
-		
-	}
+    private void viewTransferHistory() {
+        // TODO Auto-generated method stub
+        consoleService.printTransferListHeader();
+        int userId = currentUser.getUser().getId();
+        accountService.setAuthToken(currentUser.getToken());
+        Transfer[] transferHistory = transferService.listTransfersByUserId(userId);
+        try {
+            for (Transfer t : transferHistory) {
+                if (t.getTransfer_type_id() == 1) {
+                    System.out.println(t.getTransfer_id() + "From: " + t.getAccount_from() + " $" + t.getAmount());
+                    //TODO : create method in User for getUserByAccountId to populate the "from" and "to" fields here and below
+                } else if (t.getTransfer_type_id() == 2) {
+                    System.out.println(t.getTransfer_id() + "To: " + t.getAccount_from() + " $" + t.getAmount());
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("No transfer history to display.");
+        }
 
-	private void viewPendingRequests() {
-		// TODO Auto-generated method stub
-		
-	}
+        System.out.println("-----------------------------------");
+        int menuSelection = -1;
+        menuSelection = consoleService.promptForInt("Please enter transfer ID to view details (0 to cancel): ");
+        if (menuSelection == 0) {
+            mainMenu();
+        } else if (menuSelection != 0) {
+            for (Transfer t : transferHistory) {
+                if (menuSelection == t.getTransfer_id()) {
+                    consoleService.printTransferDetailsHeader();
+                    System.out.println("Id: " + t.getTransfer_id());
+                    if (t.getTransfer_type_id() == 1) {
+                        System.out.println("From: " + t.getAccount_from());
+                        System.out.println("Type: Request");
+                    } else if (t.getTransfer_type_id() == 2) {
+                        System.out.println("To: " + t.getAccount_to());
+                        System.out.println("Type: Send");
+                    }
+                    if (t.getTransfer_status_id() == 1) {
+                        System.out.println("Status: Pending");
+                    } else if (t.getTransfer_status_id() == 2) {
+                        System.out.println("Status: Approved");
+                    } else if (t.getTransfer_status_id() == 3) {
+                        System.out.println("Status: Rejected");
+                    }
+                    System.out.println("Amount: $" + t.getAmount());
+                }
+            }
+        } else {
+            System.out.println("The transfer number you have entered in invalid.");
+        }
+    }
 
-	private void sendBucks() {
-		// TODO Auto-generated method stub
-		
-	}
+    private void viewPendingRequests() {
+        // TODO Auto-generated method stub
 
-	private void requestBucks() {
-		// TODO Auto-generated method stub
-		
-	}
+    }
+
+    private void sendBucks() {
+        // TODO Auto-generated method stub
+        accountService.setAuthToken(currentUser.getToken());
+        User[] users = userService.getUsers();
+        for (User u : users) {
+            if (u.getId() != currentUser.getUser().getId()) {
+                System.out.println(u.getId() + "     " + u.getUsername());
+            }
+        }
+
+        System.out.println();
+        int menuSelection = consoleService.promptForInt("Please enter the user ID you wish you send money to (0 to cancel): ");
+        if (menuSelection == 0) {
+            mainMenu();
+        } else if (menuSelection != 0) {
+            for (User u : users) {
+                if (u.getId() == menuSelection) {
+                    BigDecimal amount = consoleService.promptForBigDecimal("Please enter the amount of money you'd like to send: ");
+                    transferService.sendMoney(currentUser.getUser().getId(), u.getId(), amount);
+                } else {
+                    System.out.println("The user ID number you have entered in invalid.");
+                }
+            }
+        }
+
+    }
+
+    private void requestBucks() {
+        // TODO Auto-generated method stub
+
+    }
 
 }

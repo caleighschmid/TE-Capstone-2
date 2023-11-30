@@ -19,7 +19,10 @@ public class AccountService {
 
     public String API_BASE_URL = "http://localhost:8080";
     private final RestTemplate restTemplate = new RestTemplate();
-
+    private String authToken = null;
+    public void setAuthToken(String authToken){
+        this.authToken = authToken;
+    }
 
     public Account getAccountById(int accountId) {
         Account account = null;
@@ -29,7 +32,14 @@ public class AccountService {
 
     public Account getAccountByUserId(int userId) {
         Account account = null;
-        account = restTemplate.getForObject(API_BASE_URL + "/accountsByUserId/" + userId, Account.class);
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(authToken);
+            HttpEntity <Account> entity = new HttpEntity<>(headers);
+            account = restTemplate.exchange(API_BASE_URL + "/accountsByUserId/" + userId, HttpMethod.GET, entity, Account.class).getBody();
+        } catch (RestClientResponseException e) {
+            System.out.println(e.getMessage());
+        }
         return account;
     }
 

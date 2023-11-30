@@ -88,4 +88,19 @@ public class ConsoleService {
         System.out.println("An error occurred. Check the log for details.");
     }
 
+
+    public void printTransferListHeader() {
+        System.out.println("-----------------------------------");
+        System.out.println("Transfers");
+        System.out.println("ID      From/To     Amount");
+        System.out.println("-----------------------------------");
+    }
+
+    public void printTransferDetailsHeader() {
+        System.out.println("-----------------------------------");
+        System.out.println("Transfer Details");
+        System.out.println("-----------------------------------");
+    }
+
+
 }
