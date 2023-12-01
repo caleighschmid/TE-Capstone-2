@@ -63,4 +63,16 @@ public class TransferController {
         List<Transfer> pastTransfers = transferDao.getTransfersByUserId(user_id);
         return pastTransfers;
     }
+
+    @PreAuthorize("permitAll")
+    @RequestMapping(path = "/transfers/request/{user_id_from}/{user_id_to}/{amount}", method = RequestMethod.POST)
+    public Transfer requestMoney(@PathVariable int user_id_from,
+                                 @PathVariable int user_id_to,
+                                 @PathVariable BigDecimal amount) {
+        int account_from = accountController.getAccountByUserId(user_id_from).getAccount_id();
+        int account_to = accountController.getAccountByUserId(user_id_to).getAccount_id();
+
+        Transfer requestMoneyTransfer = transferDao.requestMoney(account_from, account_to, amount);
+        return requestMoneyTransfer;
+    }
 }

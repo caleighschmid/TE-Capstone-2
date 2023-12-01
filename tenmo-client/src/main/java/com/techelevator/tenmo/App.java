@@ -162,7 +162,10 @@ public class App {
         userService.setAuthToken(currentUser.getToken());
         transferService.setAuthToken(currentUser.getToken());
         accountService.setAuthToken(currentUser.getToken());
+
         User[] users = userService.getUsers();
+
+        // Display list of users
         for (User u : users) {
             if (u.getId() != currentUser.getUser().getId()) {
                 System.out.println(u.getId() + "     " + u.getUsername());
@@ -170,39 +173,96 @@ public class App {
         }
 
         System.out.println();
-        int menuSelection = consoleService.promptForInt("Please enter the user ID you wish you send money to (0 to cancel): ");
+        int menuSelection = consoleService.promptForInt("Please enter the user ID you wish to request money from (0 to cancel): ");
         if (menuSelection == 0) {
             mainMenu();
         } else if (menuSelection != 0) {
             boolean matchFound = false;
+
+            // Check if the selected user ID is valid
             for (User u : users) {
                 if (u.getId() == menuSelection) {
                     matchFound = true;
-                    BigDecimal amount = consoleService.promptForBigDecimal("Please enter the amount of money you'd like to send: ");
+
+                    // Prompt for the amount to request
+                    BigDecimal amount = consoleService.promptForBigDecimal("Please enter the amount of money you'd like to request: ");
                     int comparisonResult = amount.compareTo(new BigDecimal(0));
-                    BigDecimal accountBalance = accountService.getAccountByUserId(currentUser.getUser().getId()).getBalance();
-                    int balanceComparisonResult = accountBalance.compareTo(amount);
+
+                    // Check if the requested amount is valid
                     if (comparisonResult > 0) {
-                        if (balanceComparisonResult > 0) {
-                            transferService.sendMoney(currentUser.getUser().getId(), u.getId(), amount);
-                            System.out.println("Transfer Approved!");
+                        Transfer requestTransfer = transferService.sendOrRequestMoney(currentUser.getUser().getId(), u.getId(), amount, true);
+
+                        // Check if the request was successful
+                        if (requestTransfer != null) {
+                            System.out.println("Request sent successfully!");
                         } else {
-                            System.out.println("You have entered an invalid number.");
+                            System.out.println("Failed to send request. Please try again.");
                         }
                     } else {
                         System.out.println("You have entered an invalid number.");
                     }
                 }
             }
+
             if (!matchFound) {
-                System.out.println("Sorry, the user ID you entered in invalid.");
+                System.out.println("Sorry, the user ID you entered is invalid.");
             }
         }
+
     }
 
     private void requestBucks() {
         // TODO Auto-generated method stub
 
+        userService.setAuthToken(currentUser.getToken());
+        transferService.setAuthToken(currentUser.getToken());
+        accountService.setAuthToken(currentUser.getToken());
+
+        User[] users = userService.getUsers();
+
+        // Display list of users
+        for (User u : users) {
+            if (u.getId() != currentUser.getUser().getId()) {
+                System.out.println(u.getId() + "     " + u.getUsername());
+            }
+        }
+
+        System.out.println();
+        int menuSelection = consoleService.promptForInt("Please enter the user ID you wish to request money from (0 to cancel): ");
+        if (menuSelection == 0) {
+            mainMenu();
+        } else if (menuSelection != 0) {
+            boolean matchFound = false;
+
+            // Check if the selected user ID is valid
+            for (User u : users) {
+                if (u.getId() == menuSelection) {
+                    matchFound = true;
+
+                    // Prompt for the amount to request
+                    BigDecimal amount = consoleService.promptForBigDecimal("Please enter the amount of money you'd like to request: ");
+                    int comparisonResult = amount.compareTo(new BigDecimal(0));
+
+                    // Check if the requested amount is valid
+                    if (comparisonResult > 0) {
+                        Transfer requestTransfer = transferService.sendOrRequestMoney(currentUser.getUser().getId(), u.getId(), amount, true);
+
+                        // Check if the request was successful
+                        if (requestTransfer != null) {
+                            System.out.println("Request sent successfully!");
+                        } else {
+                            System.out.println("Failed to send request. Please try again.");
+                        }
+                    } else {
+                        System.out.println("You have entered an invalid number.");
+                    }
+                }
+            }
+
+            if (!matchFound) {
+                System.out.println("Sorry, the user ID you entered is invalid.");
+            }
+        }
     }
 
 }

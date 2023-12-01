@@ -12,6 +12,7 @@ public class TransferDto {
     private int transfer_status_id;
     private int account_from;
     private int account_to;
+    private String transferType;
 
     public int getUser_from_id() {
         return user_from_id;
@@ -75,5 +76,17 @@ public class TransferDto {
 
     public void setAccount_to(int account_to) {
         this.account_to = account_to;
+    }
+
+    public void setTransfer(String s) {
+        this.transferType = s;
+
+        // Assuming you have a mapping between transferType and transfer_type_id
+        if ("Request".equalsIgnoreCase(s)) {
+            this.transfer_type_id = 1; // Set the appropriate ID for Request
+        } else if ("Send".equalsIgnoreCase(s)) {
+            this.transfer_type_id = 2; // Set the appropriate ID for Send
+        }
+
     }
 }

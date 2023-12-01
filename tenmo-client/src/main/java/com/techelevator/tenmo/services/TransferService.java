@@ -42,28 +42,49 @@ public class TransferService {
         return transfers;
     }
 
-    public Transfer sendMoney(int user_id_from, int user_id_to, BigDecimal amount) {
-//        Transfer transfer = new Transfer();
-//        transfer.setAccount_from(account_from);
-//        transfer.setAccount_to(account_to);
-//        transfer.setAmount(amount);
+    public Transfer sendOrRequestMoney(int user_id_from, int user_id_to, BigDecimal amount, boolean isRequest) {
 
         TransferDto transfer = new TransferDto();
         transfer.setUser_from_id(user_id_from);
         transfer.setUser_to_id(user_id_to);
         transfer.setAmount(amount);
+        transfer.setTransferType(isRequest ? "Request" : "Send");
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(authToken);
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<TransferDto> entity = new HttpEntity<>(transfer, headers);
 
+        Transfer sendOrRequestTransfer = null;
 
-        Transfer sendTransfer = null;
+        String url = isRequest ? "/transfers/request/" : "/transfers/send/";
 
-        sendTransfer = restTemplate.postForObject(API_BASE_URL + "/transfers/send/" + user_id_from + "/" +
-                user_id_to + "/" + amount, entity, Transfer.class);
+        sendOrRequestTransfer = restTemplate.postForObject(API_BASE_URL + url + user_id_from + "/" + user_id_to + "/" + amount, entity, Transfer.class);
 
-        return sendTransfer;
+        return sendOrRequestTransfer;
+
+
+//        Transfer transfer = new Transfer();
+//        transfer.setAccount_from(account_from);
+//        transfer.setAccount_to(account_to);
+//        transfer.setAmount(amount);
+//
+//        TransferDto transfer = new TransferDto();
+//        transfer.setUser_from_id(user_id_from);
+//        transfer.setUser_to_id(user_id_to);
+//        transfer.setAmount(amount);
+//
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.setBearerAuth(authToken);
+//        headers.setContentType(MediaType.APPLICATION_JSON);
+//        HttpEntity<TransferDto> entity = new HttpEntity<>(transfer, headers);
+//
+//
+//        Transfer sendTransfer = null;
+//
+//        sendTransfer = restTemplate.postForObject(API_BASE_URL + "/transfers/send/" + user_id_from + "/" +
+//                user_id_to + "/" + amount, entity, Transfer.class);
+//
+//        return sendTransfer;
     }
 }
