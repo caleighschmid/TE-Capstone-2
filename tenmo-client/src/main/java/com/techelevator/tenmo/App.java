@@ -102,14 +102,15 @@ public class App {
         consoleService.printTransferListHeader();
         int userId = currentUser.getUser().getId();
         transferService.setAuthToken(currentUser.getToken());
+        userService.setAuthToken(currentUser.getToken());
+        accountService.setAuthToken(currentUser.getToken());
         Transfer[] transferHistory = transferService.listTransfersByUserId(userId);
         try {
             for (Transfer t : transferHistory) {
-                if (t.getTransfer_type_id() == 1) {
-                    System.out.println(t.getTransfer_id() + "     From: " + userService.getUserByAccountId(t.getAccount_from()).getUsername() + "      $" + t.getAmount());
-                    //TODO : create method in User for getUserByAccountId to populate the "from" and "to" fields here and below
-                } else if (t.getTransfer_type_id() == 2) {
-                    System.out.println(t.getTransfer_id() + "     To: " + userService.getUserByAccountId(t.getAccount_to()).getUsername() + "      $" + t.getAmount());
+                if (t.getAccount_from() == accountService.getAccountByUserId(userId).getAccount_id()) {
+                    System.out.printf("%d    To: %-15s    $%.2f%n", t.getTransfer_id(), userService.getUserByAccountId(t.getAccount_to()).getUsername(), t.getAmount());
+                } else if (t.getAccount_to() == accountService.getAccountByUserId(userId).getAccount_id()) {
+                    System.out.printf("%d    From: %-15s  $%.2f%n", t.getTransfer_id(), userService.getUserByAccountId(t.getAccount_from()).getUsername(), t.getAmount());
                 }
             }
         } catch (Exception e) {
@@ -126,11 +127,14 @@ public class App {
                 if (menuSelection == t.getTransfer_id()) {
                     consoleService.printTransferDetailsHeader();
                     System.out.println("Id: " + t.getTransfer_id());
-                    if (t.getTransfer_type_id() == 1) {
+                    if (t.getAccount_from() == accountService.getAccountByUserId(userId).getAccount_id()) {
+                        System.out.println("To: " + userService.getUserByAccountId(t.getAccount_to()).getUsername());
+                    } else if (t.getAccount_to() == accountService.getAccountByUserId(userId).getAccount_id()) {
                         System.out.println("From: " + userService.getUserByAccountId(t.getAccount_from()).getUsername());
+                    }
+                    if (t.getTransfer_type_id() == 1) {
                         System.out.println("Type: Request");
                     } else if (t.getTransfer_type_id() == 2) {
-                        System.out.println("To: " + userService.getUserByAccountId(t.getAccount_to()).getUsername());
                         System.out.println("Type: Send");
                     }
                     if (t.getTransfer_status_id() == 1) {
