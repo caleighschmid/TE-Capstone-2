@@ -173,7 +173,7 @@ public class App {
         }
 
         System.out.println();
-        int menuSelection = consoleService.promptForInt("Please enter the user ID you wish to request money from (0 to cancel): ");
+        int menuSelection = consoleService.promptForInt("Please enter the user ID you wish to send money from (0 to cancel): ");
         if (menuSelection == 0) {
             mainMenu();
         } else if (menuSelection != 0) {
@@ -185,7 +185,7 @@ public class App {
                     matchFound = true;
 
                     // Prompt for the amount to request
-                    BigDecimal amount = consoleService.promptForBigDecimal("Please enter the amount of money you'd like to request: ");
+                    BigDecimal amount = consoleService.promptForBigDecimal("Please enter the amount of money you'd like to send: ");
                     int comparisonResult = amount.compareTo(new BigDecimal(0));
 
                     // Check if the requested amount is valid
@@ -194,7 +194,7 @@ public class App {
 
                         // Check if the request was successful
                         if (requestTransfer != null) {
-                            System.out.println("Request sent successfully!");
+                            System.out.println("Transfer sent successfully!");
                         } else {
                             System.out.println("Failed to send request. Please try again.");
                         }
