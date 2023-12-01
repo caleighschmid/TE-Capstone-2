@@ -101,15 +101,15 @@ public class App {
         // TODO Auto-generated method stub
         consoleService.printTransferListHeader();
         int userId = currentUser.getUser().getId();
-        accountService.setAuthToken(currentUser.getToken());
+        transferService.setAuthToken(currentUser.getToken());
         Transfer[] transferHistory = transferService.listTransfersByUserId(userId);
         try {
             for (Transfer t : transferHistory) {
                 if (t.getTransfer_type_id() == 1) {
-                    System.out.println(t.getTransfer_id() + "From: " + t.getAccount_from() + " $" + t.getAmount());
+                    System.out.println(t.getTransfer_id() + "     From: " + userService.getUserByAccountId(t.getAccount_from()).getUsername() + "      $" + t.getAmount());
                     //TODO : create method in User for getUserByAccountId to populate the "from" and "to" fields here and below
                 } else if (t.getTransfer_type_id() == 2) {
-                    System.out.println(t.getTransfer_id() + "To: " + t.getAccount_from() + " $" + t.getAmount());
+                    System.out.println(t.getTransfer_id() + "     To: " + userService.getUserByAccountId(t.getAccount_to()).getUsername() + "      $" + t.getAmount());
                 }
             }
         } catch (Exception e) {
@@ -127,10 +127,10 @@ public class App {
                     consoleService.printTransferDetailsHeader();
                     System.out.println("Id: " + t.getTransfer_id());
                     if (t.getTransfer_type_id() == 1) {
-                        System.out.println("From: " + t.getAccount_from());
+                        System.out.println("From: " + userService.getUserByAccountId(t.getAccount_from()).getUsername());
                         System.out.println("Type: Request");
                     } else if (t.getTransfer_type_id() == 2) {
-                        System.out.println("To: " + t.getAccount_to());
+                        System.out.println("To: " + userService.getUserByAccountId(t.getAccount_to()).getUsername());
                         System.out.println("Type: Send");
                     }
                     if (t.getTransfer_status_id() == 1) {
@@ -155,6 +155,8 @@ public class App {
 
     private void sendBucks() {
         // TODO Auto-generated method stub
+        userService.setAuthToken(currentUser.getToken());
+        transferService.setAuthToken(currentUser.getToken());
         accountService.setAuthToken(currentUser.getToken());
         User[] users = userService.getUsers();
         for (User u : users) {
@@ -168,16 +170,30 @@ public class App {
         if (menuSelection == 0) {
             mainMenu();
         } else if (menuSelection != 0) {
+            boolean matchFound = false;
             for (User u : users) {
                 if (u.getId() == menuSelection) {
+                    matchFound = true;
                     BigDecimal amount = consoleService.promptForBigDecimal("Please enter the amount of money you'd like to send: ");
-                    transferService.sendMoney(currentUser.getUser().getId(), u.getId(), amount);
-                } else {
-                    System.out.println("The user ID number you have entered in invalid.");
+                    int comparisonResult = amount.compareTo(new BigDecimal(0));
+                    BigDecimal accountBalance = accountService.getAccountByUserId(currentUser.getUser().getId()).getBalance();
+                    int balanceComparisonResult = accountBalance.compareTo(amount);
+                    if (comparisonResult > 0) {
+                        if (balanceComparisonResult > 0) {
+                            transferService.sendMoney(currentUser.getUser().getId(), u.getId(), amount);
+                            System.out.println("Transfer Approved!");
+                        } else {
+                            System.out.println("You have entered an invalid number.");
+                        }
+                    } else {
+                        System.out.println("You have entered an invalid number.");
+                    }
                 }
             }
+            if (!matchFound) {
+                System.out.println("Sorry, the user ID you entered in invalid.");
+            }
         }
-
     }
 
     private void requestBucks() {

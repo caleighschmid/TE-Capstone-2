@@ -88,7 +88,6 @@ public class ConsoleService {
         System.out.println("An error occurred. Check the log for details.");
     }
 
-
     public void printTransferListHeader() {
         System.out.println("-----------------------------------");
         System.out.println("Transfers");
@@ -101,6 +100,5 @@ public class ConsoleService {
         System.out.println("Transfer Details");
         System.out.println("-----------------------------------");
     }
-
 
 }
