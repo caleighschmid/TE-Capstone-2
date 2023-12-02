@@ -155,6 +155,27 @@ public class App {
     private void viewPendingRequests() {
         // TODO Auto-generated method stub
 
+        consoleService.printTransferListHeader();
+        int userId = currentUser.getUser().getId();
+        transferService.setAuthToken(currentUser.getToken());
+
+        // Retrieve pending requests
+        Transfer[] pendingRequests = transferService.listPendingRequestsByUserId(userId);
+
+        try {
+            for (Transfer request : pendingRequests) {
+                // Display pending request details
+                System.out.printf("%d    From: %-15s    $%.2f%n",
+                        request.getTransfer_id(),
+                        userService.getUserByAccountId(request.getAccount_from()).getUsername(),
+                        request.getAmount());
+            }
+        } catch (Exception e) {
+            System.out.println("No pending requests to display.");
+        }
+
+        consoleService.pause();
+
     }
 
     private void sendBucks() {

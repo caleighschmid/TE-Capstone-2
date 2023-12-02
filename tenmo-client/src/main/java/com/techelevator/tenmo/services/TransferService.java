@@ -33,9 +33,10 @@ public class TransferService {
         Transfer[] transfers = null;
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(authToken);
-        HttpEntity <Account> entity = new HttpEntity<>(headers);
+        HttpEntity<Account> entity = new HttpEntity<>(headers);
         try {
-            transfers = restTemplate.exchange(API_BASE_URL + "/user/" + user_id + "/transfers", HttpMethod.GET, entity, Transfer[].class).getBody();
+            transfers = restTemplate.exchange(API_BASE_URL + "/user/" + user_id + "/transfers",
+                    HttpMethod.GET, entity, Transfer[].class).getBody();
         } catch (RestClientResponseException | ResourceAccessException e) {
             BasicLogger.log(e.getMessage());
         }
@@ -49,6 +50,10 @@ public class TransferService {
         transfer.setUser_to_id(user_id_to);
         transfer.setAmount(amount);
         transfer.setTransferType(isRequest ? "Request" : "Send");
+
+
+        // Set initial status to "Pending" for request transfers
+        transfer.setTransfer_status_id(isRequest ? 1 : 2);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(authToken);
@@ -86,5 +91,19 @@ public class TransferService {
 //                user_id_to + "/" + amount, entity, Transfer.class);
 //
 //        return sendTransfer;
+    }
+
+    public Transfer[] listPendingRequestsByUserId(int user_id) {
+        Transfer[] transfers = null;
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(authToken);
+        HttpEntity<Account> entity = new HttpEntity<>(headers);
+        try {
+            transfers = restTemplate.exchange(API_BASE_URL + "/user/" + user_id + "/transfers?status=1",
+                    HttpMethod.GET, entity, Transfer[].class).getBody();
+        } catch (RestClientResponseException | ResourceAccessException e) {
+            BasicLogger.log(e.getMessage());
+        }
+        return transfers;
     }
 }
