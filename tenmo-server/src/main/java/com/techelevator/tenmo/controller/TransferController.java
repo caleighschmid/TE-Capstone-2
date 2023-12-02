@@ -45,7 +45,6 @@ public class TransferController {
         }
     }
 
-    @PreAuthorize("permitAll")
     @RequestMapping(path = "/transfers/send/{user_id_from}/{user_id_to}/{amount}", method = RequestMethod.POST)
     public Transfer sendMoney(@PathVariable int user_id_from,
                               @PathVariable int user_id_to,
@@ -78,7 +77,7 @@ public class TransferController {
         return pendingTransfers;
     }
 
-    @PreAuthorize("permitAll")
+
     @RequestMapping(path = "/transfers/request/{user_id_from}/{user_id_to}/{amount}", method = RequestMethod.POST)
     public Transfer requestMoney(@PathVariable int user_id_from,
                                  @PathVariable int user_id_to,

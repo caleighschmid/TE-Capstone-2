@@ -117,6 +117,7 @@ public class TransferService {
         boolean success = false;
         try {
             restTemplate.put(API_BASE_URL + "/transfer/" + approvedTransfer.getTransfer_id() + "/approve", entity);
+//            restTemplate.exchange(API_BASE_URL + "/transfer/" + approvedTransfer.getTransfer_id() + "/approve", HttpMethod.PUT, entity, Boolean.class);
             success = true;
         } catch (RestClientResponseException | ResourceAccessException e) {
             BasicLogger.log(e.getMessage());

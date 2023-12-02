@@ -22,12 +22,12 @@ public class AccountService {
     public void setAuthToken(String authToken){
         this.authToken = authToken;
     }
-
-    public Account getAccountById(int accountId) {
-        Account account = null;
-        account = restTemplate.getForObject(API_BASE_URL + "/accounts/" + accountId, Account.class);
-        return account;
-    }
+//
+//    public Account getAccountById(int accountId) {
+//        Account account = null;
+//        account = restTemplate.getForObject(API_BASE_URL + "/accounts/" + accountId, Account.class);
+//        return account;
+//    }
 
     public Account getAccountByUserId(int userId) {
         Account account = null;
