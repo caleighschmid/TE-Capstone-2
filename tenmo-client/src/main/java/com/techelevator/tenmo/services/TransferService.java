@@ -19,7 +19,8 @@ public class TransferService {
     private final RestTemplate restTemplate = new RestTemplate();
 
     private String authToken = null;
-    public void setAuthToken(String authToken){
+
+    public void setAuthToken(String authToken) {
         this.authToken = authToken;
     }
 
@@ -29,7 +30,7 @@ public class TransferService {
         return transfer;
     }
 
-    public Transfer[] listTransfersByUserId(int user_id){
+    public Transfer[] listTransfersByUserId(int user_id) {
         Transfer[] transfers = null;
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(authToken);
@@ -94,16 +95,49 @@ public class TransferService {
     }
 
     public Transfer[] listPendingRequestsByUserId(int user_id) {
-        Transfer[] transfers = null;
+        Transfer[] pendingTransfers = null;
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(authToken);
         HttpEntity<Account> entity = new HttpEntity<>(headers);
+
         try {
-            transfers = restTemplate.exchange(API_BASE_URL + "/user/" + user_id + "/transfers?status=1",
+            pendingTransfers = restTemplate.exchange(API_BASE_URL + "/user/" + user_id + "/pendingtransfers",
                     HttpMethod.GET, entity, Transfer[].class).getBody();
         } catch (RestClientResponseException | ResourceAccessException e) {
             BasicLogger.log(e.getMessage());
         }
-        return transfers;
+        return pendingTransfers;
     }
+
+    public boolean approveRequest(Transfer approvedTransfer) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Transfer> entity = new HttpEntity<>(approvedTransfer, headers);
+
+        boolean success = false;
+        try {
+            restTemplate.put(API_BASE_URL + "/transfer/" + approvedTransfer.getTransfer_id() + "/approve", entity);
+            success = true;
+        } catch (RestClientResponseException | ResourceAccessException e) {
+            BasicLogger.log(e.getMessage());
+        }
+        return success;
+    }
+
+    public boolean rejectRequest(Transfer rejectedTransfer) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Transfer> entity = new HttpEntity<>(rejectedTransfer, headers);
+
+        boolean success = false;
+        try {
+            restTemplate.put(API_BASE_URL + "/transfer/" + rejectedTransfer.getTransfer_id() + "/reject", entity);
+            success = true;
+        } catch (RestClientResponseException | ResourceAccessException e) {
+            BasicLogger.log(e.getMessage());
+        }
+        return success;
+    }
+
+
 }

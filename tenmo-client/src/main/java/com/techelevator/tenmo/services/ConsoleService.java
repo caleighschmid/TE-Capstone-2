@@ -91,14 +91,28 @@ public class ConsoleService {
     public void printTransferListHeader() {
         System.out.println("-----------------------------------");
         System.out.println("Transfers");
-        System.out.println("ID      From/To     Amount");
+        System.out.printf("ID%-2s    From/To%-11s     Amount", "", "");
+        System.out.println("\n-----------------------------------");
+    }
+
+    public void printPendingTransferListHeader() {
         System.out.println("-----------------------------------");
+        System.out.println("Pending Transfers");
+        System.out.printf("ID%-2s    To%-13s    Amount", "", "");
+        System.out.println("\n-----------------------------------");
     }
 
     public void printTransferDetailsHeader() {
         System.out.println("-----------------------------------");
         System.out.println("Transfer Details");
         System.out.println("-----------------------------------");
+    }
+
+    public void printPendingTransferMenu() {
+        System.out.println();
+        System.out.println("1: Approve");
+        System.out.println("2: Reject");
+        System.out.println("0: Don't approve or reject");
     }
 
 }

@@ -127,11 +127,8 @@ public class App {
                 if (menuSelection == t.getTransfer_id()) {
                     consoleService.printTransferDetailsHeader();
                     System.out.println("Id: " + t.getTransfer_id());
-                    if (t.getAccount_from() == accountService.getAccountByUserId(userId).getAccount_id()) {
-                        System.out.println("To: " + userService.getUserByAccountId(t.getAccount_to()).getUsername());
-                    } else if (t.getAccount_to() == accountService.getAccountByUserId(userId).getAccount_id()) {
-                        System.out.println("From: " + userService.getUserByAccountId(t.getAccount_from()).getUsername());
-                    }
+                    System.out.println("From: " + userService.getUserByAccountId(t.getAccount_from()).getUsername());
+                    System.out.println("To: " + userService.getUserByAccountId(t.getAccount_to()).getUsername());
                     if (t.getTransfer_type_id() == 1) {
                         System.out.println("Type: Request");
                     } else if (t.getTransfer_type_id() == 2) {
@@ -148,35 +145,86 @@ public class App {
                 }
             }
         } else {
-            System.out.println("The transfer number you have entered in invalid.");
+            System.out.println("The transfer number you have entered is invalid.");
         }
     }
 
     private void viewPendingRequests() {
         // TODO Auto-generated method stub
 
-        consoleService.printTransferListHeader();
+        consoleService.printPendingTransferListHeader();
         int userId = currentUser.getUser().getId();
         transferService.setAuthToken(currentUser.getToken());
 
         // Retrieve pending requests
         Transfer[] pendingRequests = transferService.listPendingRequestsByUserId(userId);
 
-        try {
+        if (pendingRequests.length == 0) {
+            System.out.println("No pending requests to display.");
+        } else {
             for (Transfer request : pendingRequests) {
                 // Display pending request details
-                System.out.printf("%d    From: %-15s    $%.2f%n",
+                System.out.printf("%d    %-15s    $%.2f%n",
                         request.getTransfer_id(),
-                        userService.getUserByAccountId(request.getAccount_from()).getUsername(),
+                        userService.getUserByAccountId(request.getAccount_to()).getUsername(),
                         request.getAmount());
             }
-        } catch (Exception e) {
-            System.out.println("No pending requests to display.");
+            //Call method to approve or reject requests
+            approveOrRejectRequests(pendingRequests);
         }
-
-        consoleService.pause();
-
     }
+
+    private void approveOrRejectRequests(Transfer[] pendingRequests) {
+        transferService.setAuthToken(currentUser.getToken());
+        accountService.setAuthToken(currentUser.getToken());
+        userService.setAuthToken(currentUser.getToken());
+        System.out.println("-----------------------------------");
+        int menuSelection = -1;
+        menuSelection = consoleService.promptForInt("Please enter transfer ID to approve/reject (0 to cancel): ");
+        if (menuSelection == 0) {
+            mainMenu();
+        } else if (menuSelection != 0) {
+            boolean matchFound = false;
+            for (Transfer request : pendingRequests) {
+                if (menuSelection == request.getTransfer_id()) {
+                    matchFound = true;
+                    consoleService.printPendingTransferMenu();
+                    System.out.println("-----------------------------------");
+                    menuSelection = consoleService.promptForInt("Please select an option: ");
+                    //Process to approve request
+                    if (menuSelection == 1) {
+                        //Check for sufficient funds
+                        BigDecimal accountBalance = accountService.getAccountByUserId(currentUser.getUser().getId()).getBalance();
+                        int balanceComparisonResult = accountBalance.compareTo(request.getAmount());
+                        if (balanceComparisonResult > 0) {
+                            boolean success = transferService.approveRequest(request);
+                            if (success) {
+                                System.out.println("You have successfully approved the transfer.");
+                            } else {
+                                System.out.println("Something went wrong.  Please try again.");
+                            }
+                        } else {
+                            System.out.println("You do not have sufficient funds to approve this request.");
+                        }
+                        //Process to reject request
+                    } else if (menuSelection == 2) {
+                        boolean success = transferService.rejectRequest(request);
+                        if (success) {
+                            System.out.println("You have successfully rejected the transfer.");
+                        } else {
+                            System.out.println("Something went wrong.  Please try again.");
+                        }
+                    } else if (menuSelection != 0) {
+                        System.out.println("You have selected an invalid option.  Please try again.");
+                    }
+                }
+            }
+            if (!matchFound) {
+                System.out.println("You have entered an invalid transfer ID.");
+            }
+        }
+    }
+
 
     private void sendBucks() {
         // TODO Auto-generated method stub
@@ -208,11 +256,12 @@ public class App {
                     // Prompt for the amount to request
                     BigDecimal amount = consoleService.promptForBigDecimal("Please enter the amount of money you'd like to send: ");
                     int comparisonResult = amount.compareTo(new BigDecimal(0));
+                    BigDecimal accountBalance = accountService.getAccountByUserId(currentUser.getUser().getId()).getBalance();
+                    int balanceComparisonResult = accountBalance.compareTo(amount);
 
                     // Check if the requested amount is valid
-                    if (comparisonResult > 0) {
+                    if (comparisonResult > 0 && balanceComparisonResult > 0) {
                         Transfer requestTransfer = transferService.sendOrRequestMoney(currentUser.getUser().getId(), u.getId(), amount, true);
-
                         // Check if the request was successful
                         if (requestTransfer != null) {
                             System.out.println("Transfer sent successfully!");
@@ -224,7 +273,6 @@ public class App {
                     }
                 }
             }
-
             if (!matchFound) {
                 System.out.println("Sorry, the user ID you entered is invalid.");
             }
@@ -266,7 +314,7 @@ public class App {
 
                     // Check if the requested amount is valid
                     if (comparisonResult > 0) {
-                        Transfer requestTransfer = transferService.sendOrRequestMoney(currentUser.getUser().getId(), u.getId(), amount, true);
+                        Transfer requestTransfer = transferService.sendOrRequestMoney(u.getId(), currentUser.getUser().getId(), amount, true);
 
                         // Check if the request was successful
                         if (requestTransfer != null) {

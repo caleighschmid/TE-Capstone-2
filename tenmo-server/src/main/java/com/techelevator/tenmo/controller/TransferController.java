@@ -64,6 +64,20 @@ public class TransferController {
         return pastTransfers;
     }
 
+    @RequestMapping(path = "/user/{user_id}/pendingtransfers", method = RequestMethod.GET)
+    public List<Transfer> getPendingTransfersByUserId(@PathVariable int user_id) {
+        List<Transfer> pendingTransfers = new ArrayList<>();
+        List<Transfer> pastTransfers = transferDao.getTransfersByUserId(user_id);
+        int account_id = accountController.getAccountByUserId(user_id).getAccount_id();
+
+        for (Transfer t : pastTransfers) {
+            if (t.getTransfer_status_id() == 1 && t.getAccount_from() == account_id) {
+                pendingTransfers.add(t);
+            }
+        }
+        return pendingTransfers;
+    }
+
     @PreAuthorize("permitAll")
     @RequestMapping(path = "/transfers/request/{user_id_from}/{user_id_to}/{amount}", method = RequestMethod.POST)
     public Transfer requestMoney(@PathVariable int user_id_from,
@@ -75,4 +89,29 @@ public class TransferController {
         Transfer requestMoneyTransfer = transferDao.requestMoney(account_from, account_to, amount);
         return requestMoneyTransfer;
     }
+
+
+    @RequestMapping(path = "/transfer/{transfer_id}/approve", method = RequestMethod.PUT)
+    public Transfer approveRequest(@RequestBody Transfer transfer, @PathVariable int transfer_id) {
+        transfer.setTransfer_id(transfer_id);
+        try {
+            Transfer approvedTransfer = transferDao.approveRequest(transfer);
+            return approvedTransfer;
+        } catch (DaoException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Transfer not found.");
+        }
+    }
+
+    @RequestMapping(path = "/transfer/{transfer_id}/reject", method = RequestMethod.PUT)
+    public Transfer rejectRequest(@RequestBody Transfer transfer, @PathVariable int transfer_id) {
+        transfer.setTransfer_id(transfer_id);
+        try {
+            Transfer rejectedTransfer = transferDao.rejectRequest(transfer);
+            return rejectedTransfer;
+        } catch (DaoException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Transfer not found.");
+        }
+    }
+
+
 }

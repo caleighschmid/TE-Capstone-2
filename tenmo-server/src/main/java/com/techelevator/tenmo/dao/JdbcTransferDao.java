@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 @Component
@@ -94,8 +96,67 @@ public class JdbcTransferDao implements TransferDao {
         } catch (CannotGetJdbcConnectionException e) {
             throw new DaoException("Unable to connect to server or database", e);
         }
+        Collections.sort(pastTransfers, Comparator.comparing(Transfer::getTransfer_id));
         return pastTransfers;
     }
+
+
+    @Override
+    public Transfer approveRequest(Transfer transfer) {
+        Transfer updatedTransfer = null;
+        transfer = getTransferDetailsById(transfer.getTransfer_id());
+        String sql1 = "UPDATE transfer SET transfer_status_id = 2 WHERE transfer_id = ?;";
+        String sql2 = "UPDATE account SET balance=balance-? WHERE account_id=?;";
+        String sql3 = "UPDATE account SET balance=balance+? WHERE account_id=?;";
+
+        try {
+            int transferId = transfer.getTransfer_id();
+            BigDecimal amount = transfer.getAmount();
+            int accountFrom = transfer.getAccount_from();
+            int accountTo = transfer.getAccount_to();
+            int numberOfRows = jdbcTemplate.update(sql1, transferId);
+            if (numberOfRows == 0 ) {
+                throw new DaoException("Zero Transfer rows affected, expected at least one");
+            } else {
+                int rows = jdbcTemplate.update(sql2, amount, accountFrom);
+                if (rows == 0) {
+                    throw new DaoException("Zero Transfer rows affected, expected at least one");
+                } else {
+                    int rows1 = jdbcTemplate.update(sql3, amount, accountTo);
+                    if (rows1 == 0) {
+                        throw new DaoException("Zero Transfer rows affected, expected at least one");
+                    } else {
+                        updatedTransfer = getTransferDetailsById(transfer.getTransfer_id());
+                    }
+                }
+            }
+        } catch (CannotGetJdbcConnectionException e) {
+            throw new DaoException("Unable to connect to server or database", e);
+        } catch (DaoException e) {
+            throw new DaoException("Data integrity violation", e);
+        }
+        return updatedTransfer;
+    }
+
+    @Override
+    public Transfer rejectRequest(Transfer transfer) {
+        Transfer updatedTransfer = null;
+        String sql = "UPDATE transfer SET transfer_status_id = 3 WHERE transfer_id = ?;";
+        try {
+            int numberOfRows = jdbcTemplate.update(sql, transfer.getTransfer_id());
+            if (numberOfRows == 0) {
+                throw new DaoException("Zero Transfer rows affected, expected at least one");
+            } else {
+                updatedTransfer = getTransferDetailsById(transfer.getTransfer_id());
+            }
+        } catch (CannotGetJdbcConnectionException e) {
+            throw new DaoException("Unable to connect to server or database", e);
+        } catch (DaoException e) {
+            throw new DaoException("Data integrity violation", e);
+        }
+        return updatedTransfer;
+    }
+
 
     private Transfer mapRowToTransfer(SqlRowSet rs) {
         Transfer transfer = new Transfer();

@@ -14,7 +14,6 @@ import org.springframework.web.client.RestTemplate;
 import com.techelevator.tenmo.model.AuthenticatedUser;
 import com.techelevator.tenmo.model.UserCredentials;
 
-
 public class AccountService {
 
     public String API_BASE_URL = "http://localhost:8080";

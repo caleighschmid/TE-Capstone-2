@@ -12,5 +12,6 @@ public interface TransferDao {
     Transfer sendMoney(int account_from, int account_to, BigDecimal amount);
     Transfer getTransferDetailsById(int transfer_id);
     List<Transfer> getTransfersByUserId(int user_id);
-
+    Transfer approveRequest(Transfer transfer);
+    Transfer rejectRequest(Transfer transfer);
 }
